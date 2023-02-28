@@ -100,7 +100,7 @@ def createDepFeatures():
     newData.columns = ['userid','date','f.mean', 'f.sd', 'f.propZeros']
     # Save the result to a CSV file
     newData['class1'] = newData['userid'].str[:5].apply(lambda x: 1 if x == 'condi' else 0) 
-    newData = newData[['userid','class1','f.mean','f.sd','f.propZeros']]
+    newData = newData[['userid','date','class1','f.mean','f.sd','f.propZeros']]
     newData = newData.loc[~((newData['f.mean'] == 0) & (newData['f.sd'] == 0))]
     newData = newData.loc[~((newData['f.propZeros'] == 0))]    
     print("***   Depression Baseline input file created  ***")
@@ -125,7 +125,7 @@ def createSchFeatures():
     newData.columns = ['userid','date','f.mean', 'f.sd', 'f.propZeros']
     # Save the result to a CSV file
     newData['class1'] = newData['userid'].str[:5].apply(lambda x: 1 if x == 'patie' else 0) 
-    newData = newData[['userid','class1','f.mean','f.sd','f.propZeros']]
+    newData = newData[['userid','date','class1','f.mean','f.sd','f.propZeros']]
     newData = newData.loc[~((newData['f.mean'] == 0) & (newData['f.sd'] == 0))]
     newData = newData.loc[~((newData['f.propZeros'] == 0))]    
     print("***   Schizophrenia Baseline input file created  ***")
@@ -168,8 +168,8 @@ def visualizeDepression():
    
 #visualizeDepression()   
 def createAllFeatures():
-    CDData = merge3Files()
-
+    #CDData = merge3Files()
+    CDData = pd.read_csv('AllReadings.csv')
     CDData['date'] = pd.to_datetime(CDData['date'])
     CDData['timestamp'] = pd.to_datetime(CDData['timestamp'])
 
@@ -184,8 +184,9 @@ def createAllFeatures():
     #result = newData[['id', 'activity']].groupby('id').agg(['mean', 'std', lambda x: np.percentile(x, 75)-np.percentile(x, 25)])
     newData.columns = ['userid','date','f.mean', 'f.sd', 'f.propZeros']
     # Save the result to a CSV file
-    newData['class1'] = newData['userid'].str[:5].apply(lambda x: 1 if x == 'condi' else 0) 
-    newData = newData[['userid','class1','f.mean','f.sd','f.propZeros']]
+    #newData['class1'] = newData['userid'].str[:5].apply(lambda x: 1 if x == 'condi' else 0) 
+    newData['class1'] = newData['userid'].str[:5].apply(lambda x: 1 if x == 'condi' else (0 if x == 'contr' else 2))
+    newData = newData[['userid','date','class1','f.mean','f.sd','f.propZeros']]
     newData = newData.loc[~((newData['f.mean'] == 0) & (newData['f.sd'] == 0))]
     newData = newData.loc[~((newData['f.propZeros'] == 0))]    
     print("***  All 3 groups Baseline input file created  ***")
