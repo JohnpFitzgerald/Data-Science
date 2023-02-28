@@ -7,7 +7,7 @@ Created on Sun Feb 26 12:39:07 2023
 import pandas as pd
 import numpy as np
 from scipy import stats
-
+import math
 import os
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
@@ -160,19 +160,19 @@ print('25th, 50th, and 75th percentiles:', percentiles)
 #data = data[data['activity'] != 0]
 
 # calculate z-scores for activity data
-z_scores = np.abs(stats.zscore(newData['f.mean']))
+z_scores = np.abs(stats.zscore(data['activity']))
 
 # define threshold for outliers
-#lthreshold = 20
-#hthreshold = 500
+lthreshold = 100
+hthreshold = 1000
 #data = data['f.mean' > 10]
 # filter out rows with z-score > threshold
-#newData = newData[z_scores <= hthreshold]
-#newData = newData[z_scores >= lthreshold]
-#newData = newData.loc[~((newData['f.mean'] < 20))] 
-#newData = newData.loc[~((newData['f.mean'] >500))] 
+#data = data[z_scores <= hthreshold]
+#data = data[z_scores >= lthreshold]
+data = data.loc[~((data['activity'] < 100))] 
+data = data.loc[~((data['activity'] >1500))] 
 # normalize activity data using min-max scaling
-newData['zScore'] = (newData['f.mean'] - newData['f.mean'].min()) / (newData['f.mean'].max() - newData['f.mean'].min())
+data['zScore'] = (data['activity'] - data['activity'].min()) / (data['activity'].max() - data['activity'].min())
 
 # print the normalized data
 print(newData)
@@ -207,3 +207,145 @@ plt.show()
 # plt.ylabel('lel')
 # plt.show() 
 # =============================================================================
+ControlData = data.loc[((data['Category']== 'Control'))]
+plt.hist(ControlData['activity'], bins=100)
+plt.xlabel('Daily Activity of CONTROL')
+plt.ylabel('Frequency')
+plt.title('Histogram of Control Activity')
+plt.show()
+DepressionData = data.loc[((data['Category']== 'Depressive'))]
+plt.hist(DepressionData['activity'], bins=100)
+plt.xlabel('Dail Activity of DEPRESSIVE')
+plt.ylabel('Frequency')
+plt.title('Histogram of Depression Activity')
+plt.show()
+SchizophreniaData = data.loc[((data['Category']== 'Schizophrenic'))]
+plt.hist(SchizophreniaData['activity'], bins=100)
+plt.xlabel('Daily Activity of SCHIZOPHRENIA')
+plt.ylabel('Frequency')
+plt.title('Histogram of Schizophrenic Activity')
+plt.show()
+
+
+
+
+# =============================================================================
+# 
+def entropy(d):
+     # count the frequency of each unique value in the data set
+     freq_dict = {}
+     for val in d:
+         freq_dict[val] = freq_dict.get(val, 0) + 1
+     
+     # compute the probability of each unique value
+     prob_dict = {}
+     for val, freq in freq_dict.items():
+         prob_dict[val] = freq / len(d)
+     
+     # compute the entropy of the data set
+     entropy = 0
+     for prob in prob_dict.values():
+         entropy -= prob * math.log2(prob)
+     
+     return entropy
+ 
+print(entropy(data['activity']))
+# =============================================================================
+
+
+
+# =============================================================================
+# =============================================================================
+# def fractal_dimension(d):
+#      # generate a range of box sizes
+#      box_sizes = np.floor(np.logspace(0, np.log2(len(data)), num=20))
+#      
+#      # count the number of boxes that contain at least one data point for each box size
+#      box_counts = []
+#      for size in box_sizes:
+#          if size > 0:
+#             count = 0
+#             for i in range(0, len(data), size):
+#                if np.sum(data[i:i+size]) > 0:
+#                   count += 1
+#             box_counts.append(count)     
+#      # plot the box counts against the box sizes
+#      plt.loglog(box_sizes, box_counts, 'o')
+#      plt.xlabel('Box size (log scale)')
+#      plt.ylabel('Number of boxes (log scale)')
+#      plt.title('Box counting plot')
+#      plt.show()
+#      
+# #     # compute the fractal dimension as the slope of the linear regression line
+#      coeffs = np.polyfit(np.log(box_sizes), np.log(box_counts), 1)
+#      return coeffs[0]
+# # 
+# print(fractal_dimension(data['activity']))
+# 
+# =============================================================================
+# =============================================================================
+
+# =============================================================================
+# # Load the dataset into a pandas dataframe
+# #df = pd.read_csv('AllReadings.csv')
+# df = newData.loc[((newData['Category']== 'Control'))]
+# # Normalize the activity values using z-score normalization
+# df['activity'] = (df['activity'] - df['activity'].mean()) / df['activity'].std()
+# 
+# # Remove 0 values
+# #df = df[df['activity'] != 0]
+# 
+# # Remove outliers using the interquartile range method
+# Q1 = df['activity'].quantile(0.25)
+# Q3 = df['activity'].quantile(0.75)
+# IQR = Q3 - Q1
+# df = df[(df['activity'] >= Q1 - 1.5*IQR) & (df['activity'] <= Q3 + 1.5*IQR)]
+# 
+# # Create a boxplot of the normalized and filtered activity values
+# plt.boxplot(df['activity'])
+# plt.xlabel('Control')
+# plt.show()
+# 
+# =============================================================================
+
+# =============================================================================
+# # separate data for each category
+# control_data = newData[newData['Category'] == 'Control'].copy()
+# depressive_data = newData[newData['Category'] == 'Depressive'].copy()
+# schizophrenic_data = newData[newData['Category'] == 'Schizophrenic'].copy()
+# 
+# # normalize each dataframe using .loc accessor
+# control_data.loc[:, ['f.mean', 'f.sd', 'f.propZeros']] = (control_data.loc[:, ['f.mean', 'f.sd', 'f.propZeros']] - control_data.loc[:, ['f.mean', 'f.sd', 'f.propZeros']].mean()) / control_data.loc[:, ['f.mean', 'f.sd', 'f.propZeros']].std()
+# depressive_data.loc[:, ['f.mean', 'f.sd', 'f.propZeros']] = (depressive_data.loc[:, ['f.mean', 'f.sd', 'f.propZeros']] - depressive_data.loc[:, ['f.mean', 'f.sd', 'f.propZeros']].mean()) / depressive_data.loc[:, ['f.mean', 'f.sd', 'f.propZeros']].std()
+# schizophrenic_data.loc[:, ['f.mean', 'f.sd', 'f.propZeros']] = (schizophrenic_data.loc[:, ['f.mean', 'f.sd', 'f.propZeros']] - schizophrenic_data.loc[:, ['f.mean', 'f.sd', 'f.propZeros']].mean()) / schizophrenic_data.loc[:, ['f.mean', 'f.sd', 'f.propZeros']].std()
+# 
+# # merge dataframes back together
+# normalized_df = pd.concat([control_data, depressive_data, schizophrenic_data])
+# 
+# # print normalized dataframe
+# print(normalized_df)
+# ControlData = normalized_df.loc[((normalized_df['Category']== 'Control'))]
+# plt.hist(ControlData['f.mean'], bins=100)
+# plt.xlabel('Daily Activity of CONTROL Normalized')
+# plt.ylabel('Frequency')
+# plt.title('Histogram of Normalized Control Activity')
+# plt.show()
+# DepressionData = normalized_df.loc[((normalized_df['Category']== 'Depressive'))]
+# plt.hist(DepressionData['f.mean'], bins=100)
+# plt.xlabel('Dail Activity of DEPRESSIVE Normalized')
+# plt.ylabel('Frequency')
+# plt.title('Histogram of NormalizedDepression Activity')
+# plt.show()
+# SchizophreniaData = normalized_df.loc[((normalized_df['Category']== 'Schizophrenic'))]
+# plt.hist(SchizophreniaData['f.mean'], bins=100)
+# plt.xlabel('Daily Activity of SCHIZOPHRENIA Normalized')
+# plt.ylabel('Frequency')
+# plt.title('Histogram of Normalized Schizophrenic Activity')
+# plt.show()
+# 
+# # Create a sample dataframe
+# print(newData)
+# =============================================================================
+
+
+

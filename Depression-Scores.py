@@ -7,7 +7,7 @@ Created on Thu Feb 16 17:33:17 2023
 import pandas as pd
 
 # read the data from a CSV file
-data = pd.read_csv('depressionScores.csv')
+data = pd.read_csv('Depression-Scores.csv')
 print(data)
 
 #data['count'] = data.groupby(['gender','age'])['number'].transform('count')
