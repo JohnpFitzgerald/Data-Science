@@ -21,13 +21,13 @@ from sklearn.metrics import confusion_matrix, classification_report
 #.run_line_magic('matplotlib', 'inline')
 
 #current_path = os.getcwd()
-file = 'Schizophrenia-features.csv'
+file = '24Hr-Aggregated-features.csv'
 
 #data = pd.read_csv(current_path + file)
 #JFitz - Set to read file from same directory as code
 data = pd.read_csv(file)
 #JFitz Drop redundant and string fields
-dataX = data.copy().drop(['userid','class1'],axis=1)
+dataX = data.copy().drop(['id','class1','date','Category','counter'],axis=1)
 dataY = data['class1'].copy()
 
 #----------------------------------------

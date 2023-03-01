@@ -33,8 +33,26 @@ df = pd.DataFrame(data)
 df['date'] = pd.to_datetime(df['date'])
 #df['timestamp'] = pd.to_datetime(df['timestamp'])
 
-
-
+# =============================================================================
+# def newId(idVal):
+#     if idVal[:5] == 'condi':
+#         return 'Schizophrenic'
+#     elif idVal[:5] == 'patie':
+#         return 'Depressive'
+#     elif idVal[:5] == 'contr':
+#         return 'Control'
+#     else:
+#         return '*UNKNOWN*'
+#     
+# df['Category'] = df['id'].apply(newId)
+# 
+# print(data)    
+# 
+# if '*UNKNOWN*' in df['Category'].values:
+#     print("unknowns found")
+#     
+# df['counter'] = df.groupby('Category').cumcount() + 1
+# =============================================================================
 # =============================================================================
 # # Compute the total number of minutes recorded for each category
 # minutes_per_category = df.groupby('Category')['counter'].count() * 1440
