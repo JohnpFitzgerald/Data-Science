@@ -53,8 +53,8 @@ print(data)
 if '*UNKNOWN*' in data['Category'].values:
     print("unknowns found")
     
-data['counter'] = data.groupby('Category').cumcount() + 1
-
+data['countCategory'] = data.groupby('Category').cumcount() + 1
+data['countDays'] = data.groupby('Date').cumcount() + 1
 data.to_csv('C:/mtu/project/CleanedActivityReadingsALL.csv', index=False)    
 # =============================================================================
 # =============================================================================

@@ -5,71 +5,18 @@ Created on Tue Feb 28 11:18:19 2023
 @author: fitzgeraldj
 """
 
-# =============================================================================
-# data = {
-#     'category': ['Depressive', 'Depressive', 'Depressive', 'Depressive', 'Depressive', 'Depressive', 'Depressive', 'Depressive', 'Depressive', 'Depressive', 'Depressive', 'Depressive', 'Depressive', 'Depressive', 'Depressive',
-#                  'Schizophrenic', 'Schizophrenic', 'Schizophrenic', 'Schizophrenic', 'Schizophrenic', 'Schizophrenic', 'Schizophrenic', 'Schizophrenic', 'Schizophrenic', 'Schizophrenic', 'Schizophrenic', 'Schizophrenic', 'Schizophrenic', 'Schizophrenic', 'Schizophrenic',
-#                  'Control', 'Control', 'Control', 'Control', 'Control', 'Control', 'Control', 'Control', 'Control', 'Control', 'Control', 'Control', 'Control', 'Control', 'Control',
-#     ],
-#     'day': [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
-#             1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
-#             1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
-#            ],
-#     'activity': [1000, 2000, 3000, 2500, 1500, 1800, 2300, 2100, 1700, 1200, 1400, 1600, 2200, 2400, 2600,
-#                  1200, 1400, 1600, 1500, 1700, 2000, 1800, 2200, 2100, 1900, 2300, 2400, 2500, 2600, 2700,
-#                  900, 1100, 1000, 1200, 1400, 1500, 1700, 1800, 2000, 2100, 1900, 2300, 2400, 2500, 2600,
-#     ]
-# }
-# =============================================================================
-
 import pandas as pd
 import matplotlib.pyplot as plt
 
 # read the data from a CSV file
 #data = pd.read_csv('CleanedActivityReadingsALL.csv')
-data = pd.read_csv('All3-features.csv')
+data = pd.read_csv('24HrAgg.csv')
 df = pd.DataFrame(data)
 # convert the "date" column to a datetime object
 df['date'] = pd.to_datetime(df['date'])
 #df['timestamp'] = pd.to_datetime(df['timestamp'])
 
-# =============================================================================
-# def newId(idVal):
-#     if idVal[:5] == 'condi':
-#         return 'Schizophrenic'
-#     elif idVal[:5] == 'patie':
-#         return 'Depressive'
-#     elif idVal[:5] == 'contr':
-#         return 'Control'
-#     else:
-#         return '*UNKNOWN*'
-#     
-# df['Category'] = df['id'].apply(newId)
-# 
-# print(data)    
-# 
-# if '*UNKNOWN*' in df['Category'].values:
-#     print("unknowns found")
-#     
-# df['counter'] = df.groupby('Category').cumcount() + 1
-# =============================================================================
-# =============================================================================
-# # Compute the total number of minutes recorded for each category
-# minutes_per_category = df.groupby('Category')['counter'].count() * 1440
-# 
-# # Normalize the activity values per minute
-# df['activity_per_minute'] = df['activity'] / minutes_per_category[df['Category']].values
-# 
-# # Pivot the dataframe to create a separate series for each category
-# pivoted = df.pivot(index='counter', columns='Category', values='activity_per_minute')
-# 
-# # Plot the data
-# ax = pivoted.plot(kind='line')
-# ax.set_xlabel('Day')
-# ax.set_ylabel('Activity per minute')
-# 
-# plt.show()
-# =============================================================================
+
 
 
 # =============================================================================

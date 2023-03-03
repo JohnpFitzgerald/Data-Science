@@ -34,7 +34,7 @@ file = 'Depression-features.csv'
 #JFitz - Set to read file from same directory as code
 data = pd.read_csv(file)
 #JFitz Drop redundant and string fields
-dataX = data.copy().drop(['userid','class1'],axis=1)
+dataX = data.copy().drop(['userid','date','class1'],axis=1)
 dataY = data['class1'].copy()
 
 #----------------------------------------
