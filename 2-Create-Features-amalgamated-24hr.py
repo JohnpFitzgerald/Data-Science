@@ -12,7 +12,7 @@ import math
 import os
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
-
+import seaborn as sns
 # =============================================================================
 #3 files merged 
 file = 'AllReadings.csv'
@@ -39,7 +39,7 @@ final = pd.merge(data, counted[['date']], on='date', how='inner')
 #examine the data
 print(final.head())
  
-final.to_csv('C:/mtu/project/Aggregated24Hour.csv', index=False) 
+
 
 
 #final['datetime'] = pd.to_datetime(final['date'] + ' ' + final['hour'], format='%d/%m/%Y %H:%M')
@@ -64,7 +64,7 @@ if '*UNKNOWN*' in final['Category'].values:
 else:
     print("All 24 hours have a category")        
 
-final.to_csv('C:/mtu/project/24HourReturns.csv', index=False) 
+
  
 num_records = len(final)
 print(f"Number of records in dataframe: {num_records}")
@@ -74,7 +74,7 @@ if num_records % 1440 == 0:
 else:
    print("Number of records is not divisible by 1440 with no remainder")
  
-
+final.to_csv('C:/mtu/project/24HourReturns.csv', index=False) 
 
 
  
@@ -114,41 +114,48 @@ print(newData)
 
 print("***  All 3 groups Baseline input file created for 24 hr of data only ***")
 # =============================================================================
-
+# plOTS
+#-----------------------------------------------------------------------------
 newData.to_csv('C:/mtu/project/24HrAgg.csv', index=False)
+
+grouped = final.groupby(['Category', 'hour'])['activity'].mean().reset_index()
+pivoted = grouped.pivot(index='hour', columns='Category', values='activity')
+plt.plot(pivoted.index, pivoted['Control'], label='Control')
+plt.plot(pivoted.index, pivoted['Depressive'], label='Depressive')
+plt.plot(pivoted.index, pivoted['Schizophrenic'], label='Schizophrenic')
+
+plt.xticks(range(24), [f'{h:02d}' for h in range(24)])
+
+
+plt.xlabel(' 24 hour period hourly')
+plt.ylabel('Average Activity')
+plt.title('Average Activity midnight to midnight per hour by Category')
+plt.legend()
+plt.gcf().set_size_inches(12, 6)
+
+plt.savefig('AverageActivityPerHour.png', dpi=300)
+plt.show()
+
+
+
 
 grouped = final.groupby(['Category', 'minute'])['activity'].mean().reset_index()
 pivoted = grouped.pivot(index='minute', columns='Category', values='activity')
 plt.plot(pivoted.index, pivoted['Control'], label='Control')
 plt.plot(pivoted.index, pivoted['Depressive'], label='Depressive')
 plt.plot(pivoted.index, pivoted['Schizophrenic'], label='Schizophrenic')
-plt.xlabel('Minute of Day 0 = 00:00 1440 = 23:59')
+
+#plt.xticks(range(1440), [f'{h:0}' for h in range(1440)])
+
+
+plt.xlabel(' 24 hour period in minutes')
 plt.ylabel('Average Activity')
-plt.title('Average Activity per Minute by Category')
+plt.title('Average Activity per minute by Category')
 plt.legend()
 plt.gcf().set_size_inches(12, 6)
 
 plt.savefig('AverageActivityPerMinute.png', dpi=300)
 plt.show()
 
+sns.barplot(x='Category', y='activity', data=final)
 
-
-fig, ax = plt.subplots()
-
-# Loop through each category and plot the mean values against the counter
-for category in newData['Category'].unique():
-    data = newData[newData['Category'] == category]
-    ax.plot(data['counter'], data['f.mean'], label=category)
-
-# Set the x and y axis labels
-ax.set_xlabel('Days')
-ax.set_ylabel('Daily Mean')
-
-# Add a legend to the plot
-# Add a legend to the plot
-ax.legend()
-plt.gcf().set_size_inches(12, 6)
-
-plt.savefig('DailyMeanActivity.png', dpi=300)
- # Show the plot
-plt.show()   

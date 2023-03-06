@@ -51,103 +51,114 @@ X_train, X_test, y_train, y_test = train_test_split(dataX,
 #Trainingset 10-fold cross validation
 k_fold = StratifiedKFold(n_splits=10,shuffle=True,random_state=2018)
 
-
-penalty = 'l2'
-C = 1.0
-class_weight = 'balanced'
-random_state = 2018
-solver = 'lbfgs'  #newton-cg
-#solver = 'liblinear'
-n_jobs = 1
-
-logReg = LogisticRegression(penalty=penalty, C=C,
-            class_weight=class_weight, random_state=random_state,
-                            solver=solver, n_jobs=n_jobs)
-
-
-trainingScores = []
-cvScores = []
-predictionsBasedOnKFolds = pd.DataFrame(data=[],          # ?????????????????
-                                        index=y_train.index,columns=[0,1,2])
-
-model = logReg
-
-for train_index, cv_index in k_fold.split(np.zeros(len(X_train))
-                                          ,y_train.ravel()):
-    X_train_fold, X_cv_fold = X_train.iloc[train_index,:],         X_train.iloc[cv_index,:]
-    y_train_fold, y_cv_fold = y_train.iloc[train_index],         y_train.iloc[cv_index]
-
-    model.fit(X_train_fold, y_train_fold)
-    #binary classification
-    #loglossTraining = log_loss(y_train_fold,
-    #                           model.predict_proba(X_train_fold)[:,1])
-    # the following is for multi classification - jf
-    loglossTraining = log_loss(y_train_fold,
-                           model.predict_proba(X_train_fold),
-                           labels=[0,1,2])
-    trainingScores.append(loglossTraining)
-    predictionsBasedOnKFolds.loc[X_cv_fold.index,:] =         model.predict_proba(X_cv_fold)
-    loglossCV = log_loss(y_cv_fold,
-                         predictionsBasedOnKFolds.loc[X_cv_fold.index,1])
-    cvScores.append(loglossCV)
-
-
-preds = pd.concat([y_train,predictionsBasedOnKFolds.loc[:,1]], axis=1)
-preds.columns = ['trueLabel','prediction']
-predictionsBasedOnKFoldsLogisticRegression = preds.copy()
-
-#binsry classification:
-#precision, recall, thresholds = precision_recall_curve(preds['trueLabel'],
- #                                                      preds['prediction'])
-# multi classification:
-
-average_precision = average_precision_score(preds['trueLabel'],
-                                            preds['prediction'])    
-precision = dict()
-recall = dict()
-for i in range(3):
-    precision[i], recall[i], _ = precision_recall_curve(preds['trueLabel'],
-                                                         preds['prediction'][:, i])
-    plt.step(recall[i], precision[i], color='k', alpha=0.7, where='post')
-plt.xlabel('Recall')
-plt.ylabel('Precision')
-plt.ylim([0.0, 1.05])
-plt.xlim([0.0, 1.0])
-plt.title('PRC: Average Precision = {0:0.2f}'.format(average_precision))
-
-
-
-
 # =============================================================================
-# plt.step(recall, precision, color='k', alpha=0.7, where='post')
-# plt.fill_between(recall, precision, step='post', alpha=0.3, color='k')
 # 
+# penalty = 'l2'
+# C = 1.0
+# class_weight = 'balanced'
+# random_state = 2018
+# solver = 'lbfgs'  #newton-cg
+# #solver = 'liblinear'
+# n_jobs = 1
+# 
+# logReg = LogisticRegression(penalty=penalty, C=C,
+#             class_weight=class_weight, random_state=random_state,
+#                             solver=solver, n_jobs=n_jobs)
+# 
+# 
+# trainingScores = []
+# cvScores = []
+# #predictionsBasedOnKFolds = pd.DataFrame(data=[],          # ?????????????????
+#   #                                      index=y_train.index,columns=[0,1])
+# predictionsBasedOnKFolds = pd.DataFrame(index=data.index,columns=["prediction_0", "prediction_1", "prediction_2"])
+# model = logReg
+# 
+# for train_index, cv_index in k_fold.split(np.zeros(len(X_train))
+#                                           ,y_train.ravel()):
+#     X_train_fold, X_cv_fold = X_train.iloc[train_index,:],         X_train.iloc[cv_index,:]
+#     y_train_fold, y_cv_fold = y_train.iloc[train_index],         y_train.iloc[cv_index]
+# 
+#     model.fit(X_train_fold, y_train_fold)
+#     #binary classification
+#     #loglossTraining = log_loss(y_train_fold,
+#     #                           model.predict_proba(X_train_fold)[:,1])
+#     # the following is for multi classification - jf
+#     loglossTraining = log_loss(y_train_fold,
+#                            model.predict_proba(X_train_fold),
+#                            labels=[0,1,2])
+#     trainingScores.append(loglossTraining)
+#     predictionsBasedOnKFolds.loc[X_cv_fold.index,:] =         model.predict_proba(X_cv_fold)
+#     #loglossCV = log_loss(y_cv_fold,
+#      #                    predictionsBasedOnKFolds.loc[X_cv_fold.index,1])
+#     #loglossCV = log_loss(y_cv_fold, predictionsBasedOnKFolds.loc[X_cv_fold.index, "prediction_1"])
+#     loglossCV = log_loss(y_cv_fold, predictionsBasedOnKFolds.loc[X_cv_fold.index,:], labels=[0, 1, 2])
+# 
+# 
+#     cvScores.append(loglossCV)
+# 
+# preds = pd.concat([y_train, predictionsBasedOnKFolds], axis=1)
+# 
+# #preds = pd.concat([y_train,predictionsBasedOnKFolds.loc[:,1]], axis=1)
+# preds.columns = ['trueLabel',"prediction_0", "prediction_1", "prediction_2"]
+# predictionsBasedOnKFoldsLogisticRegression = preds.copy()
+# 
+# #binsry classification:
+# #precision, recall, thresholds = precision_recall_curve(preds['trueLabel'],
+#  #                                                      preds['prediction'])
+# # multi classification:
+# 
+# #average_precision = average_precision_score(preds['trueLabel'],
+# 
+#     
+# preds = preds.dropna(subset=['trueLabel'])    
+# average_precision = average_precision_score(preds['trueLabel'], preds[["prediction_0", "prediction_1", "prediction_2"]])
+# 
+# 
+# precision = dict()
+# recall = dict()
+# for i in range(3):
+#     precision[i], recall[i], _ = precision_recall_curve(preds['trueLabel'],
+#                                                          preds[["prediction_0", "prediction_1", "prediction_2"]][:, i])
+#     plt.step(recall[i], precision[i], color='k', alpha=0.7, where='post')
 # plt.xlabel('Recall')
 # plt.ylabel('Precision')
 # plt.ylim([0.0, 1.05])
 # plt.xlim([0.0, 1.0])
+# plt.title('PRC: Average Precision = {0:0.2f}'.format(average_precision))
 # 
-# plt.title('PRC: Average Precision = {0:0.2f}'.format(
-#           average_precision))
-# =============================================================================
-
-#added multi_class switch to following line JF
-fpr, tpr, thresholds = roc_curve(preds['trueLabel'],preds['prediction'], multi_class='ovr')
-#areaUnderROC = roc_auc_score(preds['trueLabel'],preds['prediction'], multi_class='ovr')
-
-areaUnderROC = auc(fpr, tpr)
-
-plt.figure()
-plt.plot(fpr, tpr, color='r', lw=2, label='ROC curve')
-plt.plot([0, 1], [0, 1], color='k', lw=2, linestyle='--')
-plt.xlim([0.0, 1.0])
-plt.ylim([0.0, 1.05])
-plt.xlabel('FPR')
-plt.ylabel('TPR')
-plt.title('ROC:           AUC = {0:0.2f}'.format(areaUnderROC))
-plt.legend(loc="lower right")
-plt.show()
-
+# 
+# 
+# 
+# # =============================================================================
+# # plt.step(recall, precision, color='k', alpha=0.7, where='post')
+# # plt.fill_between(recall, precision, step='post', alpha=0.3, color='k')
+# # 
+# # plt.xlabel('Recall')
+# # plt.ylabel('Precision')
+# # plt.ylim([0.0, 1.05])
+# # plt.xlim([0.0, 1.0])
+# # 
+# # plt.title('PRC: Average Precision = {0:0.2f}'.format(
+# #           average_precision))
+# # =============================================================================
+# 
+# #added multi_class switch to following line JF
+# fpr, tpr, thresholds = roc_curve(preds['trueLabel'],preds[["prediction_0", "prediction_1", "prediction_2"]], multi_class='ovr')
+# #areaUnderROC = roc_auc_score(preds['trueLabel'],preds['prediction'], multi_class='ovr')
+# 
+# areaUnderROC = auc(fpr, tpr)
+# 
+# plt.figure()
+# plt.plot(fpr, tpr, color='r', lw=2, label='ROC curve')
+# plt.plot([0, 1], [0, 1], color='k', lw=2, linestyle='--')
+# plt.xlim([0.0, 1.0])
+# plt.ylim([0.0, 1.05])
+# plt.xlabel('FPR')
+# plt.ylabel('TPR')
+# plt.title('ROC:           AUC = {0:0.2f}'.format(areaUnderROC))
+# plt.legend(loc="lower right")
+# plt.show()
+# 
 n_estimators = 10
 max_features = 'auto'
 max_depth = None
@@ -159,10 +170,11 @@ bootstrap = True
 oob_score = False
 n_jobs = -1
 random_state = 2018
-#binary:
-class_weight = 'balanced'
+# #binary:
+#class_weight = 'balanced'
 #updated for multi jf:
 class_weight = {0:1, 1:1, 2:1}
+# =============================================================================
 
 
 RFC = RandomForestClassifier(n_estimators=n_estimators,
@@ -187,7 +199,7 @@ for train_index, cv_index in k_fold.split(np.zeros(len(X_train)),
     y_train_fold, y_cv_fold = y_train.iloc[train_index],         y_train.iloc[cv_index]
 
     model.fit(X_train_fold, y_train_fold)
-    loglossTraining = log_loss(y_train_fold,                                 model.predict_proba(X_train_fold)[:,1])
+    loglossTraining = log_loss(y_train_fold, model.predict_proba(X_train_fold)[:,1])
     trainingScores.append(loglossTraining)
 
     predictionsBasedOnKFolds.loc[X_cv_fold.index,:] =         model.predict_proba(X_cv_fold)
