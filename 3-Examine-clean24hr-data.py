@@ -156,6 +156,8 @@ plt.title('z-Scores of the mean daily actvity by Category')
 plt.legend()
 plt.gcf().set_size_inches(12, 6)
 
+
+
 plt.savefig('AverageActivityZScores.png', dpi=300)
 plt.show()
 

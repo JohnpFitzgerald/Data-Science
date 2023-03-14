@@ -92,9 +92,9 @@ newData = newData.loc[~((newData['f.propZeros'] == 0))]
 
 def newId(idVal):
     if idVal[:5] == 'condi':
-        return 'Schizophrenic'
-    elif idVal[:5] == 'patie':
         return 'Depressive'
+    elif idVal[:5] == 'patie':
+        return 'Schizophrenic'
     elif idVal[:5] == 'contr':
         return 'Control'
     else:

@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 
 # read the data from a CSV file
 #data = pd.read_csv('CleanedActivityReadingsALL.csv')
-data = pd.read_csv('24HrAgg.csv')
+data = pd.read_csv('24HourReturns.csv')
 df = pd.DataFrame(data)
 # convert the "date" column to a datetime object
 df['date'] = pd.to_datetime(df['date'])
@@ -43,3 +43,5 @@ plt.gcf().set_size_inches(12, 6)
 plt.savefig('DailyMeanActivity.png', dpi=300)
  # Show the plot
 plt.show() 
+
+

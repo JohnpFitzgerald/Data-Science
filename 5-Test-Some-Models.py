@@ -61,13 +61,15 @@ model.fit(X_train, y_train)
 # Step 5: Evaluate the model's performance on the testing data
 y_pred = model.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
-confusion_mat = confusion_matrix(y_test, y_pred)
+confusionLR = confusion_matrix(y_test, y_pred)
 class_report = classification_report(y_test, y_pred)
 print(f" Logistic Regression Accuracy: {accuracy}")
-print(f"LR Confusion Matrix: \n{confusion_mat}")
+print(f"LR Confusion Matrix: \n{confusionLR}")
 print(f"LR Classification Report:\n{class_report}")
 
 
+# plot the confusion matrix as a heatmap
+#sns.heatmap(confusionLR, annot=True, cmap='Blues', fmt='g')
 #===========================================================================================
 
 # split the data into training and testing sets
@@ -90,7 +92,7 @@ print(f"RanDom Forest Confusion Matrix: \n{confusionRF}")
 class_report = classification_report(y_test, y_pred)
 print(f"Random Forest Classification Report:\n{class_report}")
 
-
+#sns.heatmap(confusionRF, annot=True, cmap='Greens', fmt='g')
 #================================================================================================
 
 
@@ -114,7 +116,7 @@ print(f"XGB Classification Report:\n{class_report}")
 #plt.title("XGB Feature importances")
 #plt.show()
 
-
+#sns.heatmap(conf_mat, annot=True, cmap='Reds', fmt='g')
 #================================================================================================
 
 
@@ -138,7 +140,7 @@ print(f"Light GBM Classification Report:\n{class_report}")
 #plt.title("Light GBM Feature importances")
 #plt.show()
 
-
+#sns.heatmap(conf_mat, annot=True, cmap='Reds', fmt='g')
 #==============================================================================================
 
 
@@ -157,12 +159,12 @@ print("Decision Tree Accuracy score:", acc_score)
 print("Decision Tree Confusion matrix:\n", conf_mat)
 class_report = classification_report(y_test, y_pred)
 print(f"Decision Tree Classification Report:\n{class_report}")
-#plt.figure(figsize=(10,6))
-#plot_tree(dt_model, filled=True, feature_names=X.columns, class_names=['Depressive', 'Control', 'Schizophrenic'])
-#plt.savefig('DecisionTreeClassifier.pdf', dpi=300)
-#plt.show()
+plt.figure(figsize=(10,6))
+plot_tree(dt_model, filled=True, feature_names=X.columns, class_names=['Depressive', 'Control', 'Schizophrenic'])
+plt.savefig('DecisionTreeClassifier.pdf', dpi=300)
+plt.show()
 
-
+sns.heatmap(conf_mat, annot=True, cmap='Blues', fmt='g')
 #===============================================================================================
 
 
