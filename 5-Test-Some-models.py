@@ -53,19 +53,82 @@ scaler = StandardScaler()
 X_train[['f.mean', 'f.sd', 'f.propZeros']] = scaler.fit_transform(X_train[['f.mean', 'f.sd', 'f.propZeros']])
 X_test[['f.mean', 'f.sd', 'f.propZeros']] = scaler.transform(X_test[['f.mean', 'f.sd', 'f.propZeros']])
 
-# Step 4: Fit the logistic regression model on the training data
-model = LogisticRegression(random_state=42)
-model.fit(X_train, y_train)
 
-# Step 5: Evaluate the model's performance on the testing data
-y_pred = model.predict(X_test)
-accuracy = accuracy_score(y_test, y_pred)
-confusion_mat = confusion_matrix(y_test, y_pred)
-class_report = classification_report(y_test, y_pred)
-print(f" Logistic Regression Accuracy: {accuracy}")
-print(f"LR Confusion Matrix: \n{confusion_mat}")
-print(f"LR Classification Report:\n{class_report}")
 
+# =============================================================================
+# penalty = 'l2'
+# C = 1.0
+# random_state = 2018
+# solver = 'newton-cg'
+# 
+# logReg = LogisticRegression(penalty=penalty, C=C,
+#              random_state=random_state,
+#                             solver=solver)
+# 
+# model = logReg
+# 
+# trainingScores = []
+# cvScores = []
+# predictionsBasedOnKFolds = pd.DataFrame(data=[],
+#                                         index=y_train.index,columns=[0,1,2])
+# 
+# #Trainingset 10-fold cross validation
+# k_fold = StratifiedKFold(n_splits=10,shuffle=True,random_state=2018)
+# 
+# # Step 4: Fit the logistic regression model on the training data
+# 
+# model.fit(X_train, y_train)
+# 
+# # Step 5: Evaluate the model's performance on the testing data
+# y_pred = model.predict(X_test)
+# accuracy = accuracy_score(y_test, y_pred)
+# confusion_mat = confusion_matrix(y_test, y_pred)
+# class_report = classification_report(y_test, y_pred)
+# print(f" Logistic Regression Accuracy: {accuracy}")
+# print(f"LR Confusion Matrix: \n{confusion_mat}")
+# print(f"LR Classification Report:\n{class_report}")
+# =============================================================================
+
+# =============================================================================
+# for train_index, cv_index in k_fold.split(np.zeros(len(X_train))
+#                                           ,y_train.ravel()):
+#     X_train_fold, X_cv_fold = X_train.iloc[train_index,:],         X_train.iloc[cv_index,:]
+#     y_train_fold, y_cv_fold = y_train.iloc[train_index],         y_train.iloc[cv_index]
+# 
+#     model.fit(X_train_fold, y_train_fold)
+#     loglossTraining = log_loss(y_train_fold,
+#                                model.predict_proba(X_train_fold)[:,1])
+#     trainingScores.append(loglossTraining)
+# 
+#     predictionsBasedOnKFolds.loc[X_cv_fold.index,:] =         model.predict_proba(X_cv_fold)
+#     loglossCV = log_loss(y_cv_fold,
+#                          predictionsBasedOnKFolds.loc[X_cv_fold.index,1])
+#     cvScores.append(loglossCV)
+# =============================================================================
+
+
+# =============================================================================
+# for train_index, cv_index in k_fold.split(np.zeros(len(X_train)), y_train.ravel()):
+#     X_train_fold, X_cv_fold = X_train.iloc[train_index,:], X_train.iloc[cv_index,:]
+#     y_train_fold, y_cv_fold = y_train.iloc[train_index], y_train.iloc[cv_index]
+# 
+#     model.fit(X_train_fold, y_train_fold)
+#     loglossTraining = log_loss(y_train_fold, model.predict_proba(X_train_fold), labels=np.unique(y_train))
+# 
+#     trainingScores.append(loglossTraining)
+# 
+#     predictionsBasedOnKFolds.loc[X_cv_fold.index,:] = model.predict_proba(X_cv_fold)
+#     loglossCV = log_loss(y_cv_fold, predictionsBasedOnKFolds.loc[X_cv_fold.index], labels=np.unique(y_train))
+#     cvScores.append(loglossCV)
+# 
+# preds = pd.concat([y_train,predictionsBasedOnKFolds], axis=1)
+# preds.columns = ['trueLabel','prediction0', 'prediction1', 'prediction2']
+# predictionsBasedOnKFoldsLogisticRegression = preds.copy()
+# 
+# 
+# precision, recall, thresholds = precision_recall_curve(preds['trueLabel'], preds['prediction1'])
+# average_precision = average_precision_score(preds['trueLabel'], preds['prediction1'])
+# =============================================================================
 
 #===========================================================================================
 
