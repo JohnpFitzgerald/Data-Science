@@ -21,19 +21,15 @@ from sklearn.metrics import confusion_matrix, classification_report
 #.run_line_magic('matplotlib', 'inline')
 
 #current_path = os.getcwd()
-file = '24HrAgg.csv'
+file = '24HrFeatures.csv'
 
 #data = pd.read_csv(current_path + file)
 #JFitz - Set to read file from same directory as code
 data = pd.read_csv(file)
 #JFitz Drop redundant and string fields
-dataX = data.copy().drop(['id','class1','date','Category','counter'],axis=1)
-#dataY = data['class1'].copy()
+dataX = data.copy().drop(['id','class','date','Category','counter','patientID'],axis=1)
+dataY = data['class'].copy()
 
-# the following amended for multi classification:
-dataY = data['class1'].copy().astype('category')
-dataY.cat.categories = [0,1,2]
-    
 #----------------------------------------
 #JFitz - The follopwing code is redundant:
 #-----------------------------------------
@@ -56,8 +52,7 @@ penalty = 'l2'
 C = 1.0
 class_weight = 'balanced'
 random_state = 2018
-solver = 'lbfgs'  #newton-cg
-#solver = 'liblinear'
+solver = 'liblinear'
 n_jobs = 1
 
 logReg = LogisticRegression(penalty=penalty, C=C,
@@ -67,8 +62,8 @@ logReg = LogisticRegression(penalty=penalty, C=C,
 
 trainingScores = []
 cvScores = []
-predictionsBasedOnKFolds = pd.DataFrame(data=[],          # ?????????????????
-                                        index=y_train.index,columns=[0,1,2])
+predictionsBasedOnKFolds = pd.DataFrame(data=[],
+                                        index=y_train.index,columns=[0,1])
 
 model = logReg
 
@@ -78,14 +73,10 @@ for train_index, cv_index in k_fold.split(np.zeros(len(X_train))
     y_train_fold, y_cv_fold = y_train.iloc[train_index],         y_train.iloc[cv_index]
 
     model.fit(X_train_fold, y_train_fold)
-    #binary classification
-    #loglossTraining = log_loss(y_train_fold,
-    #                           model.predict_proba(X_train_fold)[:,1])
-    # the following is for multi classification - jf
     loglossTraining = log_loss(y_train_fold,
-                           model.predict_proba(X_train_fold),
-                           labels=[0,1,2])
+                               model.predict_proba(X_train_fold)[:,1])
     trainingScores.append(loglossTraining)
+
     predictionsBasedOnKFolds.loc[X_cv_fold.index,:] =         model.predict_proba(X_cv_fold)
     loglossCV = log_loss(y_cv_fold,
                          predictionsBasedOnKFolds.loc[X_cv_fold.index,1])
@@ -96,44 +87,26 @@ preds = pd.concat([y_train,predictionsBasedOnKFolds.loc[:,1]], axis=1)
 preds.columns = ['trueLabel','prediction']
 predictionsBasedOnKFoldsLogisticRegression = preds.copy()
 
-#binsry classification:
-#precision, recall, thresholds = precision_recall_curve(preds['trueLabel'],
- #                                                      preds['prediction'])
-# multi classification:
+
+precision, recall, thresholds = precision_recall_curve(preds['trueLabel'],
+                                                       preds['prediction'])
+
 
 average_precision = average_precision_score(preds['trueLabel'],
-                                            preds['prediction'])    
-precision = dict()
-recall = dict()
-for i in range(3):
-    precision[i], recall[i], _ = precision_recall_curve(preds['trueLabel'],
-                                                         preds['prediction'][:, i])
-    plt.step(recall[i], precision[i], color='k', alpha=0.7, where='post')
+                                            preds['prediction'])
+
+plt.step(recall, precision, color='k', alpha=0.7, where='post')
+plt.fill_between(recall, precision, step='post', alpha=0.3, color='k')
+
 plt.xlabel('Recall')
 plt.ylabel('Precision')
 plt.ylim([0.0, 1.05])
 plt.xlim([0.0, 1.0])
-plt.title('PRC: Average Precision = {0:0.2f}'.format(average_precision))
 
+plt.title('1. Logistic Regression PRC: Average Precision = {0:0.2f}'.format(
+          average_precision))
 
-
-
-# =============================================================================
-# plt.step(recall, precision, color='k', alpha=0.7, where='post')
-# plt.fill_between(recall, precision, step='post', alpha=0.3, color='k')
-# 
-# plt.xlabel('Recall')
-# plt.ylabel('Precision')
-# plt.ylim([0.0, 1.05])
-# plt.xlim([0.0, 1.0])
-# 
-# plt.title('PRC: Average Precision = {0:0.2f}'.format(
-#           average_precision))
-# =============================================================================
-
-#added multi_class switch to following line JF
-fpr, tpr, thresholds = roc_curve(preds['trueLabel'],preds['prediction'], multi_class='ovr')
-#areaUnderROC = roc_auc_score(preds['trueLabel'],preds['prediction'], multi_class='ovr')
+fpr, tpr, thresholds = roc_curve(preds['trueLabel'],preds['prediction'])
 
 areaUnderROC = auc(fpr, tpr)
 
@@ -142,9 +115,9 @@ plt.plot(fpr, tpr, color='r', lw=2, label='ROC curve')
 plt.plot([0, 1], [0, 1], color='k', lw=2, linestyle='--')
 plt.xlim([0.0, 1.0])
 plt.ylim([0.0, 1.05])
-plt.xlabel('FPR')
-plt.ylabel('TPR')
-plt.title('ROC:           AUC = {0:0.2f}'.format(areaUnderROC))
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('1. Logistic Regression ROC:   AUC = {0:0.2f}'.format(areaUnderROC))
 plt.legend(loc="lower right")
 plt.show()
 
@@ -159,11 +132,7 @@ bootstrap = True
 oob_score = False
 n_jobs = -1
 random_state = 2018
-#binary:
 class_weight = 'balanced'
-#updated for multi jf:
-class_weight = {0:1, 1:1, 2:1}
-
 
 RFC = RandomForestClassifier(n_estimators=n_estimators,
         max_features=max_features, max_depth=max_depth,
@@ -175,9 +144,8 @@ RFC = RandomForestClassifier(n_estimators=n_estimators,
 
 trainingScores = []
 cvScores = []
-# class 2 added to cols below for multi classififcaiton:
 predictionsBasedOnKFolds = pd.DataFrame(data=[],
-                                        index=y_train.index,columns=[0,1,2])
+                                        index=y_train.index,columns=[0,1])
 
 model = RFC
 
@@ -239,25 +207,6 @@ plt.show()
 #JFitz - whitespace discovered in param 'learning rate'
 #----------------------------------------------------------------
 
-#BINARY:
-# =============================================================================
-# params_xGB = {
-#     'nthread':16,
-#     'learning_rate': 0.3,
-#     'gamma': 0,
-#     'max_depth': 6,
-#     'min_child_weight': 1,
-#     'max_delta_step': 0,
-#     'subsample': 1.0,
-#     'colsample_bytree': 1.0,
-#     'objective':'binary:logistic',
-#     'num_class':1,  
-#     'eval_metric':'logloss',
-#     'seed':2018,
-#     'silent':1
-# }
-# =============================================================================
-
 params_xGB = {
     'nthread':16,
     'learning_rate': 0.3,
@@ -267,9 +216,9 @@ params_xGB = {
     'max_delta_step': 0,
     'subsample': 1.0,
     'colsample_bytree': 1.0,
-    'objective':'multi:softmax',
-    'num_class':3,
-    'eval_metric':'mlogloss',
+    'objective':'binary:logistic',
+    'num_class':1,
+    'eval_metric':'logloss',
     'seed':2018,
     'silent':1
 }
@@ -332,41 +281,16 @@ plt.title('ROC:         AUC = {0:0.2f}'.format(areaUnderROC))
 plt.legend(loc="lower right")
 plt.show()
 
-
-#binary:
-# =============================================================================
-# params_lightGB = {
-#     'task': 'train',
-#     'application':'binary',
-#     'num_class':1,
-#     'boosting': 'gbdt',
-#     'objective': 'binary',
-#     'metric': 'binary_logloss',
-#     'metric_freq':50,
-#     'is_training_metric':False,
-#     'max_depth':4,
-#     'num_leaves': 31,
-#     'learning_rate': 0.01,
-#     'feature_fraction': 1.0,
-#     'bagging_fraction': 1.0,
-#     'bagging_freq': 0,
-#     'bagging_seed': 2018,
-#     'verbose': 0,
-#     'num_threads':16
-# }
-# =============================================================================
-
-
 params_lightGB = {
     'task': 'train',
-    'application': 'multiclass',
-    'num_class': 3,
+    'application':'binary',
+    'num_class':1,
     'boosting': 'gbdt',
-    'objective': 'multiclass',
-    'metric': 'multi_logloss',
-    'metric_freq': 50,
-    'is_training_metric': False,
-    'max_depth': 4,
+    'objective': 'binary',
+    'metric': 'binary_logloss',
+    'metric_freq':50,
+    'is_training_metric':False,
+    'max_depth':4,
     'num_leaves': 31,
     'learning_rate': 0.01,
     'feature_fraction': 1.0,
@@ -374,8 +298,9 @@ params_lightGB = {
     'bagging_freq': 0,
     'bagging_seed': 2018,
     'verbose': 0,
-    'num_threads': 16
+    'num_threads':16
 }
+
 trainingScores = []
 cvScores = []
 predictionsBasedOnKFolds = pd.DataFrame(data=[],
@@ -431,25 +356,25 @@ plt.legend(loc="lower right")
 plt.show()
 
 #Testset
-predictionsTestSetLogisticRegression = pd.DataFrame(data=[],index=y_test.index,columns=['prediction'])
-predictionsTestSetLogisticRegression.loc[:,'prediction'] = logReg.predict_proba(X_test)
-logLossTestSetLogisticRegression = log_loss(y_test, predictionsTestSetLogisticRegression)
+predictionsTestSetLogisticRegression =     pd.DataFrame(data=[],index=y_test.index,columns=['prediction'])
+predictionsTestSetLogisticRegression.loc[:,'prediction'] =     logReg.predict_proba(X_test)[:,1]
+logLossTestSetLogisticRegression =     log_loss(y_test, predictionsTestSetLogisticRegression)
 
-predictionsTestSetRandomForests = pd.DataFrame(data=[],index=y_test.index,columns=['prediction'])
-predictionsTestSetRandomForests.loc[:,'prediction'] = RFC.predict_proba(X_test)
-logLossTestSetRandomForests = log_loss(y_test, predictionsTestSetRandomForests)
+predictionsTestSetRandomForests =     pd.DataFrame(data=[],index=y_test.index,columns=['prediction'])
+predictionsTestSetRandomForests.loc[:,'prediction'] =     RFC.predict_proba(X_test)[:,1]
+logLossTestSetRandomForests =     log_loss(y_test, predictionsTestSetRandomForests)
 
-predictionsTestSetXGBoostGradientBoosting = pd.DataFrame(data=[],index=y_test.index,columns=['prediction'])
+predictionsTestSetXGBoostGradientBoosting =     pd.DataFrame(data=[],index=y_test.index,columns=['prediction'])
 dtest = xgb.DMatrix(data=X_test)
-predictionsTestSetXGBoostGradientBoosting.loc[:,'prediction'] = bst.predict(dtest)
-logLossTestSetXGBoostGradientBoosting = log_loss(y_test, predictionsTestSetXGBoostGradientBoosting)
+predictionsTestSetXGBoostGradientBoosting.loc[:,'prediction'] =     bst.predict(dtest)
+logLossTestSetXGBoostGradientBoosting =     log_loss(y_test, predictionsTestSetXGBoostGradientBoosting)
 
-predictionsTestSetLightGBMGradientBoosting = pd.DataFrame(data=[],index=y_test.index,columns=['prediction'])
-predictionsTestSetLightGBMGradientBoosting.loc[:,'prediction'] = gbm.predict(X_test, num_iteration=gbm.best_iteration)
-logLossTestSetLightGBMGradientBoosting = log_loss(y_test, predictionsTestSetLightGBMGradientBoosting)
+predictionsTestSetLightGBMGradientBoosting =     pd.DataFrame(data=[],index=y_test.index,columns=['prediction'])
+predictionsTestSetLightGBMGradientBoosting.loc[:,'prediction'] =     gbm.predict(X_test, num_iteration=gbm.best_iteration)
+logLossTestSetLightGBMGradientBoosting =     log_loss(y_test, predictionsTestSetLightGBMGradientBoosting)
 
-precision, recall, thresholds = precision_recall_curve(y_test,predictionsTestSetLogisticRegression[:,1], pos_label=2)
-average_precision = average_precision_score(y_test,predictionsTestSetLogisticRegression[:,1], pos_label=2)
+precision, recall, thresholds =     precision_recall_curve(y_test,predictionsTestSetLogisticRegression)
+average_precision =     average_precision_score(y_test,predictionsTestSetLogisticRegression)
 
 plt.step(recall, precision, color='k', alpha=0.7, where='post')
 plt.fill_between(recall, precision, step='post', alpha=0.3, color='k')
@@ -459,9 +384,10 @@ plt.ylabel('Precision')
 plt.ylim([0.0, 1.05])
 plt.xlim([0.0, 1.0])
 
-plt.title('PRC: Average Precision = {0:0.2f}'.format(average_precision))
+plt.title('PRC: Average Precision = {0:0.2f}'.format(
+          average_precision))
 
-fpr, tpr, thresholds = roc_curve(y_test,predictionsTestSetLogisticRegression[:,1], pos_label=2)
+fpr, tpr, thresholds = roc_curve(y_test,predictionsTestSetLogisticRegression)
 areaUnderROC = auc(fpr, tpr)
 
 plt.figure()
@@ -475,8 +401,8 @@ plt.title('ROC: AUC = {0:0.2f}'.format(areaUnderROC))
 plt.legend(loc="lower right")
 plt.show()
 
-precision, recall, thresholds = precision_recall_curve(y_test,predictionsTestSetRandomForests[:,1], pos_label=2)
-average_precision = average_precision_score(y_test,predictionsTestSetRandomForests[:,1], pos_label=2)
+precision, recall, thresholds =     precision_recall_curve(y_test,predictionsTestSetRandomForests)
+average_precision =     average_precision_score(y_test,predictionsTestSetRandomForests)
 
 plt.step(recall, precision, color='k', alpha=0.7, where='post')
 plt.fill_between(recall, precision, step='post', alpha=0.3, color='k')
@@ -485,69 +411,6 @@ plt.xlabel('Recall')
 plt.ylabel('Precision')
 plt.ylim([0.0, 1.05])
 plt.xlim([0.0, 1.0])
-
-#plt.title('PRC:
-
-
-
-# =============================================================================
-# #Testset
-# predictionsTestSetLogisticRegression =     pd.DataFrame(data=[],index=y_test.index,columns=['prediction'])
-# predictionsTestSetLogisticRegression.loc[:,'prediction'] =     logReg.predict_proba(X_test)[:,1]
-# logLossTestSetLogisticRegression =     log_loss(y_test, predictionsTestSetLogisticRegression)
-# 
-# predictionsTestSetRandomForests =     pd.DataFrame(data=[],index=y_test.index,columns=['prediction'])
-# predictionsTestSetRandomForests.loc[:,'prediction'] =     RFC.predict_proba(X_test)[:,1]
-# logLossTestSetRandomForests =     log_loss(y_test, predictionsTestSetRandomForests)
-# 
-# predictionsTestSetXGBoostGradientBoosting =     pd.DataFrame(data=[],index=y_test.index,columns=['prediction'])
-# dtest = xgb.DMatrix(data=X_test)
-# predictionsTestSetXGBoostGradientBoosting.loc[:,'prediction'] =     bst.predict(dtest)
-# logLossTestSetXGBoostGradientBoosting =     log_loss(y_test, predictionsTestSetXGBoostGradientBoosting)
-# 
-# predictionsTestSetLightGBMGradientBoosting =     pd.DataFrame(data=[],index=y_test.index,columns=['prediction'])
-# predictionsTestSetLightGBMGradientBoosting.loc[:,'prediction'] =     gbm.predict(X_test, num_iteration=gbm.best_iteration)
-# logLossTestSetLightGBMGradientBoosting =     log_loss(y_test, predictionsTestSetLightGBMGradientBoosting)
-# 
-# precision, recall, thresholds =     precision_recall_curve(y_test,predictionsTestSetLogisticRegression)
-# average_precision =     average_precision_score(y_test,predictionsTestSetLogisticRegression)
-# 
-# plt.step(recall, precision, color='k', alpha=0.7, where='post')
-# plt.fill_between(recall, precision, step='post', alpha=0.3, color='k')
-# 
-# plt.xlabel('Recall')
-# plt.ylabel('Precision')
-# plt.ylim([0.0, 1.05])
-# plt.xlim([0.0, 1.0])
-# 
-# plt.title('PRC: Average Precision = {0:0.2f}'.format(
-#           average_precision))
-# 
-# fpr, tpr, thresholds = roc_curve(y_test,predictionsTestSetLogisticRegression)
-# areaUnderROC = auc(fpr, tpr)
-# 
-# plt.figure()
-# plt.plot(fpr, tpr, color='r', lw=2, label='ROC curve')
-# plt.plot([0, 1], [0, 1], color='k', lw=2, linestyle='--')
-# plt.xlim([0.0, 1.0])
-# plt.ylim([0.0, 1.05])
-# plt.xlabel('FPR')
-# plt.ylabel('TPR')
-# plt.title('ROC: AUC = {0:0.2f}'.format(areaUnderROC))
-# plt.legend(loc="lower right")
-# plt.show()
-# 
-# precision, recall, thresholds =     precision_recall_curve(y_test,predictionsTestSetRandomForests)
-# average_precision =     average_precision_score(y_test,predictionsTestSetRandomForests)
-# 
-# plt.step(recall, precision, color='k', alpha=0.7, where='post')
-# plt.fill_between(recall, precision, step='post', alpha=0.3, color='k')
-# 
-# plt.xlabel('Recall')
-# plt.ylabel('Precision')
-# plt.ylim([0.0, 1.05])
-# plt.xlim([0.0, 1.0])
-# =============================================================================
 
 plt.title('PRC: Average Precision = {0:0.2f}'.format(
           average_precision))
@@ -633,44 +496,20 @@ predictionsBasedOnKFoldsFourModels = predictionsBasedOnKFoldsFourModels.join(
     predictionsBasedOnKFoldsLightGBMGradientBoosting['prediction'].astype(float), \
     how='left',rsuffix="4")
 predictionsBasedOnKFoldsFourModels.columns =     ['predsLR','predsRF','predsXGB','predsLightGBM']
-predictionsBasedOnKFoldsFourModels.columns = ['predsLR','predsRF','predsXGB','predsLightGBM']
-predictionsBasedOnKFoldsFourModels.columns = ['predsLR','predsRF','predsXGB','predsLightGBM']
-predictionsBasedOnKFoldsFourModels.columns = ['predsLR','predsRF','predsLightGBM']
 
 X_trainWithPredictions =     X_train.merge(predictionsBasedOnKFoldsFourModels,
                   left_index=True,right_index=True)
 
-# =============================================================================
-# params_lightGB = {
-#     'task': 'train',
-#     'application':'binary',
-#     'num_class':1,
-#     'boosting': 'gbdt',
-#     'objective': 'binary',
-#     'metric': 'binary_logloss',
-#     'metric_freq':50,
-#     'is_training_metric':False,
-#     'max_depth':4,
-#     'num_leaves': 31,
-#     'learning_rate': 0.01,
-#     'feature_fraction': 1.0,
-#     'bagging_fraction': 1.0,
-#     'bagging_freq': 0,
-#     'bagging_seed': 2018,
-#     'verbose': 0,
-#     'num_threads':16
-# }
-# =============================================================================
 params_lightGB = {
     'task': 'train',
-    'application': 'multiclass',
-    'num_class': 3,
+    'application':'binary',
+    'num_class':1,
     'boosting': 'gbdt',
-    'objective': 'multiclass',
-    'metric': 'multi_logloss',
-    'metric_freq': 50,
-    'is_training_metric': False,
-    'max_depth': 4,
+    'objective': 'binary',
+    'metric': 'binary_logloss',
+    'metric_freq':50,
+    'is_training_metric':False,
+    'max_depth':4,
     'num_leaves': 31,
     'learning_rate': 0.01,
     'feature_fraction': 1.0,
@@ -678,8 +517,9 @@ params_lightGB = {
     'bagging_freq': 0,
     'bagging_seed': 2018,
     'verbose': 0,
-    'num_threads': 16
+    'num_threads':16
 }
+
 trainingScores = []
 cvScores = []
 predictionsBasedOnKFoldsEnsemble =     pd.DataFrame(data=[],index=y_train.index,columns=['prediction'])
@@ -699,9 +539,6 @@ for train_index, cv_index in k_fold.split(np.zeros(len(X_train)),               
     predictionsBasedOnKFoldsEnsemble.loc[X_cv_fold.index,'prediction'] =         gbm.predict(X_cv_fold, num_iteration=gbm.best_iteration)
     loglossCV = log_loss(y_cv_fold,         predictionsBasedOnKFoldsEnsemble.loc[X_cv_fold.index,'prediction'])
     cvScores.append(loglossCV)
-
-
-
 
 
 predictions = pd.concat([y_train,predictionsBasedOnKFoldsEnsemble.loc[:,'prediction']], axis=1)

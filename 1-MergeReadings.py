@@ -60,7 +60,7 @@ def merge3Files():
     print("***    Merging multiple files into a single pandas dataframe  ***")
     allData= pd.concat(map(pd.read_csv, [Contro,Schizo,Depre]), ignore_index=True)
     allData.to_csv('C:/mtu/project/AllReadings.csv', index=False)
-
+    #print((allData['id'].nunique()))
 def mergeControlDepression():
     Depre = 'C:/mtu/project/DepReadings.csv' 
     Contro = 'C:/mtu/project/ConReadings.csv'

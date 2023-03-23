@@ -21,21 +21,23 @@ from sklearn.model_selection import train_test_split
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score, f1_score, classification_report
 from sklearn.metrics import confusion_matrix
-#from sklearn.metrics import plot_confusion_matrix
+from sklearn.metrics import plot_confusion_matrix
 #from sklearn.utils.multiclass import plot_confusion_matrix
 #get_ipython().run_line_magic('matplotlib', 'inline')
 
-#current_path = os.getcwd()
-file = 'featuresAll.csv'
+file = '24HrFeatures.csv'
 
-data = pd.read_csv(file)
+#data = pd.read_csv(current_path + file)
+#JFitz - Set to read file from same directory as code
+df = pd.read_csv(file)
+# Step 3: Prepare the data for modeling
+#X = df[['f.mean', 'f.sd', 'f.propZeros']]
+#y = df['class1']
 
-dataX = data.copy().drop(['class','userid'],axis=1)
-dataY = data['class'].copy()
+X = df.copy().drop(['id','class','date','Category','counter','patientID'],axis=1)
+y = df['class'].copy()
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
 
-X_train, X_test, y_train, y_test = train_test_split(dataX,
-                                    dataY, test_size=0.10,
-                                    random_state=2019, stratify=dataY)
 
 #Trainingset 10-fold cross validation
 k_fold = StratifiedKFold(n_splits=10,shuffle=True,random_state=2018)
@@ -86,20 +88,68 @@ print('Mean CV Score:', np.mean(cvScores))
 from sklearn.preprocessing import LabelEncoder
 
 
-le = LabelEncoder()
-preds['trueLabel'] = le.fit_transform(preds['trueLabel'])
+#le = LabelEncoder()
+#preds['trueLabel'] = le.fit_transform(preds['trueLabel'])
 
+from sklearn.metrics import plot_confusion_matrix
 
-print('Classification Report:')
+#plot_confusion_matrix(model, X_test, y_test, normalize=None, cmap=plt.cm.Blues, values_format='.2f')
+#plt.title('Confusion Matrix - Logistic Regression')
+#plt.show()
+
+#print('Classification Report:')
 #print(classification_report(preds['trueLabel'], preds.iloc[:,1:].idxmax(axis=1)))
-print(classification_report(preds['trueLabel'], preds.iloc[:,1:].astype(float).idxmax(axis=1)))
+#print(classification_report(preds['trueLabel'], preds.iloc[:,1:].astype(float).idxmax(axis=1)))
 
 #plot_confusion_matrix(model, X_test, y_test, normalize=None, cmap=plt.cm.Blues, values_format='.2f')
 #plt.title('Confusion Matrix - Logistic Regression')
 #plt.show()
 
 # assuming you have already computed the confusion matrix
-cm = confusion_matrix(model, X_test, y_test, normalize=None, cmap=plt.cm.Blues, values_format='.2f')
+
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+
+# display the confusion matrix
+disp = ConfusionMatrixDisplay.from_estimator(model, X_test, y_test, normalize=None, cmap=plt.cm.Blues, values_format='.2f')
+disp.plot()
+
+
+
+penalty = 'l2'
+C = 1.0
+class_weight = 'balanced'
+random_state = 2018
+solver = 'liblinear'
+n_jobs = 1
+
+logReg = LogisticRegression(penalty=penalty, C=C,
+            class_weight=class_weight, random_state=random_state,
+                            solver=solver, n_jobs=n_jobs)
+
+
+trainingScores = []
+cvScores = []
+predictionsBasedOnKFolds = pd.DataFrame(data=[],
+                                        index=y_train.index,columns=[0,1])
+
+model = logReg
+
+
+
+
+# Step 4: Fit the logistic regression model on the training data
+model = LogisticRegression(random_state=42)
+model.fit(X_train, y_train)
+
+# Step 5: Evaluate the model's performance on the testing data
+y_pred = model.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+confusion_mat = confusion_matrix(y_test, y_pred)
+class_report = classification_report(y_test, y_pred)
+print(f" Logistic Regression Accuracy: {accuracy}")
+print(f"LR Confusion Matrix: \n{confusion_mat}")
+print(f"LR Classification Report:\n{class_report}")
+#cm = confusion_matrix(model, X_test, y_test, normalize=None, cmap=plt.cm.Blues, values_format='.2f')
 
 # plot the confusion matrix as a heatmap
-sns.heatmap(cm, annot=True, cmap='Blues', fmt='g')
+#sns.heatmap(cm, annot=True, cmap='Blues', fmt='g')
