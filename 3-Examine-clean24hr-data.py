@@ -15,8 +15,8 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 # read the data from a CSV file
 #data = pd.read_csv('CleanedActivityReadingsALL.csv')
-#Data = pd.read_csv('24HourReturns.csv')
-df = pd.read_csv('24HrAgg.csv')
+#df = pd.read_csv('4HourlyFeatures.csv')
+df = pd.read_csv('24HrFeatures.csv')
 df = pd.DataFrame(df)
 # convert the "date" column to a datetime object
 df['date'] = pd.to_datetime(df['date'])
@@ -109,35 +109,38 @@ print(entropy(df['f.mean']))
 # =============================================================================
 # def fractal_dimension(d):
 #     # generate a range of box sizes
-#     box_sizes = np.floor(np.logspace(0, np.log2(len(d)), num=20))
-#     boxes = box_sizes.round().astype(int)
-#     # count the number of boxes that contain at least one data point for each box size
+#     box_sizes = np.round(np.logspace(0, int(np.log2(len(d))), num=20)).astype(int)
+#     print(box_sizes)
 #     box_counts = []
-#     box_size = 0
-#     for box_size in boxes:
-#         if box_size > 0:
+#     for box_size_i in box_sizes:
+#         if box_size_i > 0:
 #             count = 0
-#             for i in range(0, len(d), int(box_size)):
-#                 if np.sum(d[i:i+int(box_size)]) > 0:
+#             for i in range(0,  len(d), box_size_i):
+#                 if np.sum(d[i:i+int(box_size_i)]) > 0:
 #                     count += 1
 #             box_counts.append(count)
 # 
 #     # plot the box counts against the box sizes
-#     plt.loglog(boxes, box_counts, 'o')
+#     plt.loglog(box_sizes, box_counts, 'o')
 #     plt.xlabel('Box size (log scale)')
 #     plt.ylabel('Number of boxes (log scale)')
 #     plt.title('Box counting plot')
 #     plt.show()
 # 
 #     # compute the fractal dimension as the slope of the linear regression line
-#     coeffs = np.polyfit(np.log(boxes), np.log(box_counts), 1)
+#     coeffs = np.polyfit(np.log(box_sizes), np.log(box_counts), 1)
 #     return coeffs[0]
 # 
-# d_rounded = df['f.mean'].round().astype(int)
+# 
+# d_rounded = df['f.mean'].round().apply(int)
+# 
 # print(d_rounded)
-# print(fractal_dimension(d_rounded.to_numpy()))
+# #print(fractal_dimension(d_rounded))
+# fd = fractal_dimension(d_rounded)
+# print(fd)
 # =============================================================================
 
+#.to_numpy()
 # do a line grapgh of z-scores on the average daily activity
 
 df = df.loc[~((df['counter'] > 350))] 
