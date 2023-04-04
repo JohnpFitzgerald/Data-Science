@@ -32,13 +32,13 @@ from sklearn.tree import DecisionTreeClassifier
 import matplotlib.pyplot as plt
 
 
-file = '24HrFeatures.csv'
-#file = '4HourlyFeatures.csv'
+#file = '24HrFeatures.csv'
+file = '4HourlyFeatures.csv'
 df = pd.read_csv(file)
 
 
 #Prepare the data for modeling
-X = df.copy().drop(['id','class','date','Category','counter','patientID'],axis=1)
+X = df.copy().drop(['id','class','date','Category','counter','patientID','segment'],axis=1)
 y = df['class'].copy()
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
 

@@ -38,8 +38,8 @@ from sklearn.metrics import precision_recall_curve, average_precision_score
 from sklearn.metrics import roc_curve, auc, roc_auc_score
 from sklearn.metrics import confusion_matrix, classification_report
 
-file = '4HourlyFeatures.csv'
-#file = '24HrFeatures.csv'
+#file = '4HourlyFeatures.csv'
+file = '24HrFeatures.csv'
 #data = pd.read_csv(current_path + file)
 #JFitz - Set to read file from same directory as code
 df = pd.read_csv(file)
@@ -47,7 +47,7 @@ df = pd.read_csv(file)
 #X = df[['f.mean', 'f.sd', 'f.propZeros']]
 #y = df['class1']
 
-X = df.copy().drop(['id','class','date','Category','counter','segment','patientID'],axis=1)
+X = df.copy().drop(['id','class','date','Category','counter','patientID'],axis=1)
 y = df['class'].copy()
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
 
